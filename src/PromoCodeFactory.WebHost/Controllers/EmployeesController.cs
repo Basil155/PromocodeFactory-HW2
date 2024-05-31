@@ -61,6 +61,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                 Email = employee.Email,
                 Roles = employee.Roles.Select(x => new RoleItemResponse()
                 {
+                    Id = x.Id,
                     Name = x.Name,
                     Description = x.Description
                 }).ToList(),
