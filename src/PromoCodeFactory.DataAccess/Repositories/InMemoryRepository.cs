@@ -4,9 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain;
+
 namespace PromoCodeFactory.DataAccess.Repositories
 {
-    public class InMemoryRepository<T>: IRepository<T> where T: BaseEntity
+    public class InMemoryRepository<T> : IRepository<T> where T : BaseEntity
     {
         protected IEnumerable<T> Data { get; set; }
 
@@ -23,6 +24,20 @@ namespace PromoCodeFactory.DataAccess.Repositories
         public Task<T> GetByIdAsync(Guid id)
         {
             return Task.FromResult(Data.FirstOrDefault(x => x.Id == id));
+        }
+
+        public Task<bool> DeleteByIdAsync(Guid id)
+        {
+            var item = Data.FirstOrDefault(x => x.Id == id);
+
+            if (item == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            Data = Data.Where(x => x.Id != id);
+
+            return Task.FromResult(true);
         }
     }
 }
