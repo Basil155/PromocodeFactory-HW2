@@ -2,7 +2,7 @@
 
 namespace PromoCodeFactory.WebHost.Models
 {
-    public class RoleItemResponse
+    public class RoleResponse
     {
         public Guid Id { get; set; }
 

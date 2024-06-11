@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using PromoCodeFactory.Core.Abstractions.Repositories;
-using PromoCodeFactory.Core.Domain.Administration;
 using PromoCodeFactory.WebHost.Models;
+using PromoCodeFactory.WebHost.Services;
 
 namespace PromoCodeFactory.WebHost.Controllers
 {
@@ -13,33 +12,18 @@ namespace PromoCodeFactory.WebHost.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class RolesController
+    public class RolesController(RoleService roleService)
     {
-        private readonly IRepository<Role> _rolesRepository;
-
-        public RolesController(IRepository<Role> rolesRepository)
-        {
-            _rolesRepository = rolesRepository;
-        }
-
         /// <summary>
         /// Получить все доступные роли сотрудников
         /// </summary>
         /// <returns></returns>
+        /// <response code="200">Успешное выполнение</response>
         [HttpGet]
-        public async Task<List<RoleItemResponse>> GetRolesAsync()
+        [ProducesResponseType(typeof(List<RoleResponse>), (int)HttpStatusCode.OK)]
+        public async Task<ActionResult<List<RoleResponse>>> GetRolesAsync()
         {
-            var roles = await _rolesRepository.GetAllAsync();
-
-            var rolesModelList = roles.Select(x =>
-                new RoleItemResponse()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Description = x.Description
-                }).ToList();
-
-            return rolesModelList;
+            return await roleService.GetAllAsync();
         }
     }
 }

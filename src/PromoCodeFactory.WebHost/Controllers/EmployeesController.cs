@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using PromoCodeFactory.Core.Abstractions.Repositories;
-using PromoCodeFactory.Core.Domain.Administration;
 using PromoCodeFactory.WebHost.Models;
+using PromoCodeFactory.WebHost.Services;
 
 namespace PromoCodeFactory.WebHost.Controllers
 {
@@ -14,135 +13,88 @@ namespace PromoCodeFactory.WebHost.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class EmployeesController : ControllerBase
+    public class EmployeesController(EmployeeService employeeService) : ControllerBase
     {
-        private readonly IRepository<Employee> _employeeRepository;
-        private readonly IRepository<Role> _roleRepository;
-
-        public EmployeesController(IRepository<Employee> employeeRepository, IRepository<Role> rolRepository)
-        {
-            _employeeRepository = employeeRepository;
-            _roleRepository = rolRepository;
-        }
-
         /// <summary>
         /// Получить данные всех сотрудников
         /// </summary>
         /// <returns></returns>
+        /// <response code="200">Успешное выполнение</response>
         [HttpGet]
+        [ProducesResponseType(typeof(List<EmployeeShortResponse>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<List<EmployeeShortResponse>>> GetEmployeesAsync()
         {
-            var employees = await _employeeRepository.GetAllAsync();
-
-            var employeesModelList = employees.Select(x =>
-                new EmployeeShortResponse()
-                {
-                    Id = x.Id,
-                    Email = x.Email,
-                    FullName = x.FullName,
-                }).ToList();
-
-            return await Task.FromResult(employeesModelList);
+            return await employeeService.GetAllAsync();
         }
 
         /// <summary>
         /// Получить данные сотрудника по Id
         /// </summary>
         /// <returns></returns>
+        /// <response code="200">Успешное выполнение</response>
+        /// <response code="404">Объект не найден</response>
         [HttpGet("{id:guid}")]
+        [ProducesResponseType(typeof(EmployeeResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NotFound)]
         public async Task<ActionResult<EmployeeResponse>> GetEmployeeByIdAsync(Guid id)
         {
-            var employee = await _employeeRepository.GetByIdAsync(id);
+            var employeeModel = await employeeService.GetByIdAsync(id);
 
-            if (employee == null)
+            if (employeeModel == null)
                 return NotFound();
 
-            var employeeModel = new EmployeeResponse()
-            {
-                Id = employee.Id,
-                Email = employee.Email,
-                Roles = employee.Roles.Select(x => new RoleItemResponse()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Description = x.Description
-                }).ToList(),
-                FullName = employee.FullName,
-                AppliedPromocodesCount = employee.AppliedPromocodesCount
-            };
-
-            return await Task.FromResult(employeeModel);
+            return employeeModel;
         }
 
         /// <summary>
         /// Изменить данные сотрудника по Id
         /// </summary>
         /// <returns></returns>
+        /// <response code="204">Успешное выполнение</response>
+        /// <response code="404">Объект не найден</response>
         [HttpPut("{id:guid}")]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NotFound)]
         public async Task<ActionResult> UpdateEmployeeByIdAsync(Guid id, EmployeeRequest employeeRequest)
         {
-            var employee = new Employee
-            {
-                Id = id,
-                FirstName = employeeRequest.FirstName,
-                LastName = employeeRequest.LastName,
-                Email = employeeRequest.Email,
-                Roles = [],
-                AppliedPromocodesCount = employeeRequest.AppliedPromocodesCount
-            };
+            var success = await employeeService.UpdateByIdAsync(id, employeeRequest);
 
-            foreach (var rId in employeeRequest.Roles)
+            if (success)
             {
-                employee.Roles.Add(await _roleRepository.GetByIdAsync(rId));
+                return NoContent();
             }
 
-            var success = await _employeeRepository.UpdateByIdAsync(id, employee);
- 
-            return await Task.FromResult(NoContent());
-
+            return NotFound();
         }
 
         /// <summary>
         /// Добавить данные сотрудника
         /// </summary>
         /// <returns></returns>
+        /// <response code="204">Успешное выполнение</response>
+        /// <response header="Location">Расположение объекта</response>
         [HttpPost]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
         public async Task<ActionResult> CreateEmployeeAsync(EmployeeRequest employeeRequest)
         {
-            var employee = new Employee
-            {
-                Id = Guid.Empty,
-                FirstName = employeeRequest.FirstName,
-                LastName = employeeRequest.LastName,
-                Email = employeeRequest.Email,
-                Roles = [],
-                AppliedPromocodesCount = employeeRequest.AppliedPromocodesCount
-            };
-
-            foreach (var rId in employeeRequest.Roles)
-            {
-                employee.Roles.Add(await _roleRepository.GetByIdAsync(rId));
-            }
-
-            var id = await _employeeRepository.CreateAsync(employee);
+            var id = await employeeService.CreateAsync(employeeRequest);
 
             Response.Headers.Add("Location", $"api/v1/Employees/{id}");
-            return await Task.FromResult(NoContent());
-
+            return NoContent();
         }
 
         /// <summary>
         /// Удалить данные сотрудника по Id
         /// </summary>
         /// <returns></returns>
+        /// <response code="204">Успешное выполнение</response>
         [HttpDelete("{id:guid}")]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
         public async Task<ActionResult> DeleteEmployeeByIdAsync(Guid id)
         {
+            var success = await employeeService.DeleteByIdAsync(id);
 
-            var success = await _employeeRepository.DeleteByIdAsync(id);
-
-            return await Task.FromResult(NoContent());
-
+            return NoContent();
         }
     }
 }
