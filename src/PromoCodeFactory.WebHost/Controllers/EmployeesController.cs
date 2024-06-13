@@ -32,16 +32,16 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Успешное выполнение</response>
-        /// <response code="404">Объект не найден</response>
+        /// <response code="204">Нет данных</response>
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(EmployeeResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
         public async Task<ActionResult<EmployeeResponse>> GetEmployeeByIdAsync(Guid id)
         {
             var employeeModel = await employeeService.GetByIdAsync(id);
 
             if (employeeModel == null)
-                return NotFound();
+                return NoContent();
 
             return employeeModel;
         }
@@ -50,51 +50,50 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Изменить данные сотрудника по Id
         /// </summary>
         /// <returns></returns>
-        /// <response code="204">Успешное выполнение</response>
-        /// <response code="404">Объект не найден</response>
+        /// <response code="200">Успешное выполнение</response>
+        /// <response code="400">Объект не найден</response>
         [HttpPut("{id:guid}")]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         public async Task<ActionResult> UpdateEmployeeByIdAsync(Guid id, EmployeeRequest employeeRequest)
         {
             var success = await employeeService.UpdateByIdAsync(id, employeeRequest);
 
             if (success)
             {
-                return NoContent();
+                return Ok();
             }
 
-            return NotFound();
+            return BadRequest();
         }
 
         /// <summary>
         /// Добавить данные сотрудника
         /// </summary>
         /// <returns></returns>
-        /// <response code="204">Успешное выполнение</response>
+        /// <response code="201">Успешное выполнение</response>
         /// <response header="Location">Расположение объекта</response>
         [HttpPost]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.Created)]
         public async Task<ActionResult> CreateEmployeeAsync(EmployeeRequest employeeRequest)
         {
             var id = await employeeService.CreateAsync(employeeRequest);
 
-            Response.Headers.Add("Location", $"api/v1/Employees/{id}");
-            return NoContent();
+            return Created($"api/v1/Employees/{id}", null);
         }
 
         /// <summary>
         /// Удалить данные сотрудника по Id
         /// </summary>
         /// <returns></returns>
-        /// <response code="204">Успешное выполнение</response>
+        /// <response code="200">Успешное выполнение</response>
         [HttpDelete("{id:guid}")]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> DeleteEmployeeByIdAsync(Guid id)
         {
             var success = await employeeService.DeleteByIdAsync(id);
 
-            return NoContent();
+            return Ok();
         }
     }
 }
