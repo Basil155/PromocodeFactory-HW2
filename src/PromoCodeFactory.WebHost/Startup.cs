@@ -16,13 +16,13 @@ namespace PromoCodeFactory.WebHost
         {
             services.AddControllers();
             
-            services.AddSingleton(typeof(IRepository<Employee>), (x) => 
+            services.AddSingleton<IRepository<Employee>>((_) => 
                 new InMemoryRepository<Employee>(FakeDataFactory.Employees));
-            services.AddSingleton(typeof(IRepository<Role>), (x) => 
+            services.AddSingleton<IRepository<Role>>((_) => 
                 new InMemoryRepository<Role>(FakeDataFactory.Roles));
 
-            services.AddScoped(typeof(RoleService));
-            services.AddScoped(typeof(EmployeeService));
+            services.AddScoped<RoleService>();
+            services.AddScoped<EmployeeService>();
 
             services.AddOpenApiDocument(options =>
             {

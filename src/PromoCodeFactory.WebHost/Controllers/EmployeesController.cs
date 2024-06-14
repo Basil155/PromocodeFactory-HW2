@@ -91,7 +91,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> DeleteEmployeeByIdAsync(Guid id)
         {
-            var success = await employeeService.DeleteByIdAsync(id);
+            await employeeService.DeleteByIdAsync(id);
 
             return Ok();
         }

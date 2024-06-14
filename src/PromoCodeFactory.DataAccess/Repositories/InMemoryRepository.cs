@@ -9,7 +9,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
 {
     public class InMemoryRepository<T> : IRepository<T> where T : BaseEntity
     {
-        protected IEnumerable<T> Data { get; set; }
+        private IEnumerable<T> Data { get; set; }
 
         public InMemoryRepository(IEnumerable<T> data)
         {
